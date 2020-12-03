@@ -1,19 +1,19 @@
-# \<ds-orderer>
+# \<ds-sorter>
 
 This webcomponent follows the [open-wc](https://github.com/open-wc/open-wc) recommendation.
 
 ## Installation
 ```bash
-npm i ds-orderer
+npm i ds-sorter
 ```
 
 ## Usage
 ```html
 <script type="module">
-  import 'ds-orderer/ds-orderer.js';
+  import 'ds-sorter/ds-sorter.js';
 </script>
 
-<ds-orderer></ds-orderer>
+<ds-sorter></ds-sorter>
 ```
 
 ## Linting with ESLint, Prettier, and Types

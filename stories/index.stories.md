@@ -1,15 +1,15 @@
 ```js script
 import { html } from '@open-wc/demoing-storybook';
-import '../dist/ds-orderer.js';
+import '../dist/ds-sorter.js';
 
 export default {
-  title: 'DsOrderer',
-  component: 'ds-orderer',
+  title: 'DsSorter',
+  component: 'ds-sorter',
   options: { selectedPanel: "storybookjs/knobs/panel" },
 };
 ```
 
-# DsOrderer
+# DsSorter
 
 A component for...
 
@@ -24,16 +24,16 @@ A component for...
 ### Installation
 
 ```bash
-yarn add ds-orderer
+yarn add ds-sorter
 ```
 
 ```js
-import 'ds-orderer/ds-orderer.js';
+import 'ds-sorter/ds-sorter.js';
 ```
 
 ```js preview-story
 export const Simple = () => html`
-  <ds-orderer></ds-orderer>
+  <ds-sorter></ds-sorter>
 `;
 ```
 
@@ -43,6 +43,6 @@ export const Simple = () => html`
 
 ```js preview-story
 export const CustomTitle = () => html`
-  <ds-orderer title="Hello World"></ds-orderer>
+  <ds-sorter title="Hello World"></ds-sorter>
 `;
 ```

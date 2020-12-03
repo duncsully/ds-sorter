@@ -2,7 +2,7 @@
   "version": 2,
   "tags": [
     {
-      "name": "ds-orderer",
+      "name": "ds-sorter",
       "description": "A component with a title and an action counter",
       "properties": [
         {
@@ -22,7 +22,7 @@
       "slots": [],
       "cssProperties": [
         {
-          "name": "--ds-orderer-text-color",
+          "name": "--ds-sorter-text-color",
           "description": "Main Text Color",
           "type": "Color"
         }

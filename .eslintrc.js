@@ -17,4 +17,7 @@ module.exports = {
     'import/no-unresolved': 'off',
     'import/extensions': ['error', 'always', { ignorePackages: true }],
   },
+  env: {
+    browser: true,
+},
 };

@@ -1,1 +1,1 @@
-export { DsOrderer } from './src/DsOrderer.js';
+export { DsSorter } from './src/DsSorter.js';

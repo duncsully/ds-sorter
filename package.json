@@ -1,8 +1,8 @@
 {
-  "name": "ds-orderer",
+  "name": "ds-sorter",
   "version": "0.0.0",
-  "description": "Webcomponent ds-orderer following open-wc recommendations",
-  "author": "ds-orderer",
+  "description": "Webcomponent ds-sorter following open-wc recommendations",
+  "author": "ds-sorter",
   "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/index.js",

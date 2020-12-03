@@ -13,14 +13,25 @@
 
   <script type="module">
     import { html, render } from 'lit-html';
-    import '../dist/ds-orderer.js';
+    import '../dist/ds-sorter.js';
 
     const title = 'Hello owc World!';
     render(
       html`
-        <ds-orderer .title=${title}>
-          some more light-dom
-        </ds-orderer>
+        <ds-sorter sortby="random">
+          <p>1</p>
+          <p>2</p>
+          <p>3</p>
+          <p>4</p>
+          <p>5</p>
+        </ds-sorter>
+        <ds-sorter sortby="attribute" sortingAttribute="class">
+          <p class="d">D</p>
+          <p class="c">C</p>
+          <p class="a">A</p>
+          <p class="e">E</p>
+          <p class="b">B</p>
+        </ds-sorter>
       `,
       document.querySelector('#demo')
     );
