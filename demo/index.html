@@ -15,22 +15,41 @@
     import { html, render } from 'lit-html';
     import '../dist/ds-sorter.js';
 
-    const title = 'Hello owc World!';
     render(
       html`
-        <ds-sorter sortby="random">
+        <ds-sorter random onclick="this.sort()">
           <p>1</p>
           <p>2</p>
           <p>3</p>
           <p>4</p>
           <p>5</p>
         </ds-sorter>
-        <ds-sorter sortby="attribute" sortingAttribute="class">
+
+        <ds-sorter by="class" descending>
           <p class="d">D</p>
           <p class="c">C</p>
           <p class="a">A</p>
           <p class="e">E</p>
           <p class="b">B</p>
+        </ds-sorter>
+        
+        <ul>
+          <ds-sorter by=".innerText, href" selector="a">
+            <li><a href="#lessawesome">Hey!</a></li>
+            <li><a href="#awesome">Hey!</a></li>
+            <li><a href="#sick">Cool</a></li>
+            <li><a href="#nasty">Aaah!</a></li>
+            <li><a href="#farts">Neato</a></li>
+          </ds-sorter>
+        </ul>
+
+        <ds-sorter by=".checked" onchange="this.sort()">
+          <input type="checkbox"/>
+          <input type="checkbox"/>
+          <input type="checkbox" checked/>
+          <input type="checkbox"/>
+          <input type="checkbox" checked/>
+          <input type="checkbox"/>
         </ds-sorter>
       `,
       document.querySelector('#demo')
