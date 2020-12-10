@@ -75,7 +75,7 @@ export class DsSorter extends LitElement {
       .forEach((el, i) => (el.parentElement?.children[i] !== el) && el.parentElement?.appendChild(el))
   }
 
-  #sorter = (a: HTMLElement, b: HTMLElement, order: string[] = this.by): number => {
+  #sorter = (a: HTMLElement, b: HTMLElement): number => {
     // TODO: Optionally add a seed?
     if (!isNaN(this.random)) {
       return Math.random() - 0.5
@@ -85,18 +85,21 @@ export class DsSorter extends LitElement {
       return this.custom(a, b)
     }
 
-    const [key, ...restKeys] = order
-
     const firstElem = (this.selector ? a.querySelector(this.selector) : a) as HTMLElement
     const secondElem = (this.selector ? b.querySelector(this.selector) : b) as HTMLElement
 
     this.mutationObserver.observe(firstElem, { attributes: true, attributeFilter: this.sortingAttributes })
 
+    return this.#compareElements(firstElem, secondElem)
+  }
+
+  #compareElements = (firstElem: HTMLElement, secondElem: HTMLElement, keys = this.by): number => {
+    const [key, ...restKeys] = keys
     const firstVal = this.#getValue(firstElem, key)
     const secondVal = this.#getValue(secondElem, key)
 
-    // TODO: Make more efficient. Shouldn't make each recursive call requery (check for restKeys, don't default param it?)
-    if (firstVal === secondVal) { return restKeys.length && this.#sorter(a, b, restKeys) }
+    // If current values are equal, move down the keys until something isn't equal or we run out of keys
+    if (firstVal === secondVal) { return restKeys.length && this.#compareElements(firstElem, secondElem, restKeys) }
     if (firstVal < secondVal) { return this.descending ? 1 : -1 }
     return this.descending ? -1 : 1
   }
