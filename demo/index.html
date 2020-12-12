@@ -17,7 +17,7 @@
 
     render(
       html`
-        <ds-sorter random onclick="this.sort()">
+        <ds-sorter random @click=${function(){ this.sort() }}>
           <p>1</p>
           <p>2</p>
           <p>3</p>
@@ -34,7 +34,7 @@
         </ds-sorter>
         
         <ul>
-          <ds-sorter by=".innerText, href" selector="a">
+          <ds-sorter by=".innerText, href" selector="a" reverse="href">
             <li><a href="#lessawesome">Hey!</a></li>
             <li><a href="#awesome">Hey!</a></li>
             <li><a href="#sick">Cool</a></li>
@@ -50,6 +50,13 @@
           <input type="checkbox"/>
           <input type="checkbox" checked/>
           <input type="checkbox"/>
+        </ds-sorter>
+
+        <ds-sorter by="class">
+          <p class='a' name="3">B class a name 3</p>
+          <p class='c' name="4">A class c name 4</p>
+          <p class='b' name='2'>D class b name 2</p>
+          <p class='d' name='1'>C class d name 1</p>
         </ds-sorter>
       `,
       document.querySelector('#demo')
