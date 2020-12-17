@@ -2,7 +2,8 @@ import { html, LitElement, property } from 'lit-element';
 // TODO: Todo list example
 // TODO: Cast attributes? (+ number, ? boolean, : array)
 // TODO: Implement PRNG with optional seed?
-// TODO: Handle comaring different types? 
+// TODO: Handle comparing different types? 
+// TODO: Allow selector per attr/prop in 'by'?
 const stringToArray = (value: string | null) => value?.split(/,\s*/) ?? []
 export class DsSorter extends LitElement {
 
@@ -18,7 +19,7 @@ export class DsSorter extends LitElement {
   @property({converter:  stringToArray}) by = ['.innerText']
 
   /**
-   * Custom sort callback
+   * Custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) for sorting
    */
   @property({attribute: false}) custom: undefined | ((a: HTMLElement, b: HTMLElement) => number) = undefined
 
@@ -86,14 +87,13 @@ export class DsSorter extends LitElement {
     const firstElem = (this.selector ? a.querySelector(this.selector) : a) as HTMLElement
     const secondElem = (this.selector ? b.querySelector(this.selector) : b) as HTMLElement
 
-    if (this.custom) {
-      return this.custom(firstElem, secondElem)
-    }
-
     return this.#compareElements(firstElem, secondElem)
   }
 
   #compareElements = (firstElem: HTMLElement, secondElem: HTMLElement, keys = this.by): number => {
+    if (this.custom) {
+      return this.custom(firstElem, secondElem) * (this.descending ? -1 : 1)
+    }
     const [key, ...restKeys] = keys
     const firstVal = this.#getValue(firstElem, key)
     const secondVal = this.#getValue(secondElem, key)
