@@ -1,30 +1,94 @@
 {
-  "version": 2,
+  "version": "experimental",
   "tags": [
     {
       "name": "ds-sorter",
-      "description": "A component with a title and an action counter",
-      "properties": [
+      "path": "./src\\DsSorter.ts",
+      "description": "A web component for sorting contained elements",
+      "attributes": [
         {
-          "name": "title",
-          "type": "String",
-          "description": "The title of your component",
-          "default": "Hey there"
+          "name": "random",
+          "description": "If present, sorts randomly",
+          "type": "boolean",
+          "default": "false"
         },
         {
-          "name": "counter",
-          "type": "Number",
-          "description": "An action counter",
-          "default": 0
+          "name": "by",
+          "description": "A list of keys to sort by in order. By default, key is assumed to be for an attribute. Changes to any listed attributes on any of the children will automatically cause a re-sort. \nTo use a property, prepend \".\" to the key (e.g. \".checked\"). Note that an automatic re-sort won't be triggered for property changes. In those scenarios, it's recommended to listen for events involved in the changing property (e.g. for checked, listen for change event)",
+          "type": "string",
+          "default": "\".innerText\""
+        },
+        {
+          "name": "descending",
+          "description": "Sort in descending order (else ascending is default)",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "reverse",
+          "description": "Any keys to reverse the order of relative to the rest",
+          "type": "string",
+          "default": "\"\""
+        },
+        {
+          "name": "selector",
+          "description": "Optionally provide a selector with which to grab a descendent of the element being sorted to use the prop/attr/elem of (e.g. ul>ds-sort>li>a>span ':scope > a > span')",
+          "type": "string",
+          "default": "\"\""
         }
       ],
-      "events": [],
-      "slots": [],
-      "cssProperties": [
+      "properties": [
         {
-          "name": "--ds-sorter-text-color",
-          "description": "Main Text Color",
-          "type": "Color"
+          "name": "random",
+          "attribute": "random",
+          "description": "If present, sorts randomly",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "by",
+          "attribute": "by",
+          "description": "A list of keys to sort by in order. By default, key is assumed to be for an attribute. Changes to any listed attributes on any of the children will automatically cause a re-sort. \nTo use a property, prepend \".\" to the key (e.g. \".checked\"). Note that an automatic re-sort won't be triggered for property changes. In those scenarios, it's recommended to listen for events involved in the changing property (e.g. for checked, listen for change event)",
+          "type": "string[]",
+          "default": "[\".innerText\"]"
+        },
+        {
+          "name": "comparator",
+          "description": "Custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) for sorting",
+          "type": "((a: HTMLElement, b: HTMLElement) => number) | undefined",
+          "default": "\"undefined\""
+        },
+        {
+          "name": "descending",
+          "attribute": "descending",
+          "description": "Sort in descending order (else ascending is default)",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "reverse",
+          "attribute": "reverse",
+          "description": "Any keys to reverse the order of relative to the rest",
+          "type": "string[]",
+          "default": "[]"
+        },
+        {
+          "name": "selector",
+          "attribute": "selector",
+          "description": "Optionally provide a selector with which to grab a descendent of the element being sorted to use the prop/attr/elem of (e.g. ul>ds-sort>li>a>span ':scope > a > span')",
+          "type": "string",
+          "default": "\"\""
+        },
+        {
+          "name": "sort",
+          "type": "() => void",
+          "default": "\"() => {\\n    this._slottedContent.sort(this.#sorter)\\n      .forEach((el, i) => (el.parentElement?.children[i] !== el) && el.parentElement?.appendChild(el))\\n  }\""
+        }
+      ],
+      "slots": [
+        {
+          "name": "",
+          "description": "Content to sort"
         }
       ]
     }

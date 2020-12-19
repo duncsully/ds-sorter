@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "tags": [
+    {
+      "name": "ds-sorter",
+      "description": "A web component for sorting contained elements\n\nSlots:\n\n  * ` ` {} - Content to sort\n\nAttributes:\n\n  * `random` {`boolean`} - If present, sorts randomly\n\n  * `by` {`string[]`} - A list of keys to sort by in order. By default, key is assumed to be for an attribute. Changes to any listed attributes on any of the children will automatically cause a re-sort. \nTo use a property, prepend \".\" to the key (e.g. \".checked\"). Note that an automatic re-sort won't be triggered for property changes. In those scenarios, it's recommended to listen for events involved in the changing property (e.g. for checked, listen for change event)\n\n  * `descending` {`boolean`} - Sort in descending order (else ascending is default)\n\n  * `reverse` {`string[]`} - Any keys to reverse the order of relative to the rest\n\n  * `selector` {`string`} - Optionally provide a selector with which to grab a descendent of the element being sorted to use the prop/attr/elem of (e.g. ul>ds-sort>li>a>span ':scope > a > span')\n\nProperties:\n\n  * `random` {`boolean`} - If present, sorts randomly\n\n  * `by` {`string[]`} - A list of keys to sort by in order. By default, key is assumed to be for an attribute. Changes to any listed attributes on any of the children will automatically cause a re-sort. \nTo use a property, prepend \".\" to the key (e.g. \".checked\"). Note that an automatic re-sort won't be triggered for property changes. In those scenarios, it's recommended to listen for events involved in the changing property (e.g. for checked, listen for change event)\n\n  * `comparator` - Custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) for sorting\n\n  * `descending` {`boolean`} - Sort in descending order (else ascending is default)\n\n  * `reverse` {`string[]`} - Any keys to reverse the order of relative to the rest\n\n  * `selector` {`string`} - Optionally provide a selector with which to grab a descendent of the element being sorted to use the prop/attr/elem of (e.g. ul>ds-sort>li>a>span ':scope > a > span')\n\n  * `sortingAttributes` {`string[]`} - \n\n  * `_slottedContent` {`HTMLElement[]`} - \n\n  * `_mutationObserver` {`MutationObserver`} - \n\n  * `sort` - ",
+      "attributes": [
+        {
+          "name": "random",
+          "description": "`random` {`boolean`} - If present, sorts randomly\n\nProperty: random\n\nDefault: false",
+          "valueSet": "v"
+        },
+        {
+          "name": "by",
+          "description": "`by` {`string[]`} - A list of keys to sort by in order. By default, key is assumed to be for an attribute. Changes to any listed attributes on any of the children will automatically cause a re-sort. \nTo use a property, prepend \".\" to the key (e.g. \".checked\"). Note that an automatic re-sort won't be triggered for property changes. In those scenarios, it's recommended to listen for events involved in the changing property (e.g. for checked, listen for change event)\n\nProperty: by\n\nDefault: .innerText"
+        },
+        {
+          "name": "descending",
+          "description": "`descending` {`boolean`} - Sort in descending order (else ascending is default)\n\nProperty: descending\n\nDefault: false",
+          "valueSet": "v"
+        },
+        {
+          "name": "reverse",
+          "description": "`reverse` {`string[]`} - Any keys to reverse the order of relative to the rest\n\nProperty: reverse\n\nDefault: "
+        },
+        {
+          "name": "selector",
+          "description": "`selector` {`string`} - Optionally provide a selector with which to grab a descendent of the element being sorted to use the prop/attr/elem of (e.g. ul>ds-sort>li>a>span ':scope > a > span')\n\nProperty: selector\n\nDefault: "
+        }
+      ]
+    }
+  ],
+  "globalAttributes": [],
+  "valueSets": []
+}

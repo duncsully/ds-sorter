@@ -1,7 +1,7 @@
 {
   "name": "ds-sorter",
-  "version": "0.0.0",
-  "description": "Webcomponent ds-sorter following open-wc recommendations",
+  "version": "0.1.0",
+  "description": "Web Component DsSorter for sorting elements",
   "author": "ds-sorter",
   "license": "MIT",
   "main": "dist/index.js",

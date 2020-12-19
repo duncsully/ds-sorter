@@ -4,7 +4,14 @@ import { html, LitElement, property } from 'lit-element';
 // TODO: Implement PRNG with optional seed?
 // TODO: Handle comparing different types? 
 // TODO: Allow selector per attr/prop in 'by'?
+// TODO: Throw warning if selector returns null?
 const stringToArray = (value: string | null) => value?.split(/,\s*/) ?? []
+/**
+ * A web component for sorting contained elements
+ * @element ds-sorter
+ * 
+ * @slot - Content to sort
+ */
 export class DsSorter extends LitElement {
 
   /**
@@ -21,7 +28,7 @@ export class DsSorter extends LitElement {
   /**
    * Custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) for sorting
    */
-  @property({attribute: false}) custom: undefined | ((a: HTMLElement, b: HTMLElement) => number) = undefined
+  @property({attribute: false}) comparator: undefined | ((a: HTMLElement, b: HTMLElement) => number) = undefined
 
   /**
    * Sort in descending order (else ascending is default)
@@ -38,7 +45,7 @@ export class DsSorter extends LitElement {
    */
   @property({type: String}) selector = ''
 
-  get sortingAttributes() {
+  private get sortingAttributes() {
     return this.by.filter(item => item[0] !== '.')
   }
 
@@ -46,21 +53,21 @@ export class DsSorter extends LitElement {
     return Array.from(this.shadowRoot?.querySelector('slot')?.assignedElements() ?? []) as HTMLElement[]
   }
 
-  mutationObserver = new MutationObserver(mutationList => {
+  private _mutationObserver = new MutationObserver(mutationList => {
     const shouldUpdate = mutationList.some(mutation => mutation.type === 'attributes' && this.sortingAttributes.length)
     if (shouldUpdate) this.sort()
   })
 
   disconnectedCallback() {
     super.disconnectedCallback()
-    this.mutationObserver.disconnect()
+    this._mutationObserver.disconnect()
   }
 
   updated() {
       this.sort()
       this._slottedContent.forEach(elem => {
         const observeElem = (this.selector ? elem.querySelector(this.selector) : elem) as HTMLElement
-        this.mutationObserver.observe(observeElem, { attributes: true, attributeFilter: this.sortingAttributes })
+        this._mutationObserver.observe(observeElem, { attributes: true, attributeFilter: this.sortingAttributes })
       })
   }
 
@@ -91,8 +98,8 @@ export class DsSorter extends LitElement {
   }
 
   #compareElements = (firstElem: HTMLElement, secondElem: HTMLElement, keys = this.by): number => {
-    if (this.custom) {
-      return this.custom(firstElem, secondElem) * (this.descending ? -1 : 1)
+    if (this.comparator) {
+      return this.comparator(firstElem, secondElem) * (this.descending ? -1 : 1)
     }
     const [key, ...restKeys] = keys
     const firstVal = this.#getValue(firstElem, key)

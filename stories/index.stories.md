@@ -1,11 +1,17 @@
 ```js script
-import { html } from '@open-wc/demoing-storybook';
+import { html, withKnobs, withWebComponentsKnobs, text, array, boolean } from '@open-wc/demoing-storybook';
 import '../dist/ds-sorter.js';
 
 export default {
   title: 'DsSorter',
   component: 'ds-sorter',
   options: { selectedPanel: "storybookjs/knobs/panel" },
+  decorators: [withKnobs, /* withWebComponentsKnobs */],
+  parameters: {
+    knobs: {
+      escapeHTML: false
+    }
+  }
 };
 ```
 
@@ -39,6 +45,20 @@ import 'ds-sorter/ds-sorter.js';
 
 ```html
 <script src=""></script>
+```
+
+## API
+<sb-props of="ds-sorter"></sb-props>
+
+## Playground
+```js preview-story
+export const Playground = ({ random, by, selector, reverse, comparator, descending}) => html`
+  <ds-sorter ?random=${boolean('random', true)} by=${text('by', 'class')} selector=${text('selector', '')} reverse=${text('reverse', '')} .comparator=${comparator} ?descending=${boolean('descending', false)}>
+    <div class="B"><p class="A"><span class="C">div B, p A, span C</span></p></div>
+    <div class="C"><p class="B"><span class="A">div C, p B, span A</span></p></div>
+    <div class="A"><p class="C"><span class="B">div A, p C, span B</span></p></div>
+  </ds-sorter>
+`
 ```
 
 ## Examples
@@ -158,12 +178,12 @@ export const Descending = () => html`
 ``` 
 
 ##### Custom Sorting
-Finally, if none of the available configurations quite meet your needs (you may certainly submit a ticket or pull request for new features), you can provide a custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) with the ``custom`` property. Note that you'll have to get a reference to the DsSorter element and set the property. If you use the ``selector`` attribute, then the comparison function will be passed the elements queried with the selector. You can also still use the ``descending`` attribute to sort the elements in reverse order.
+Finally, if none of the available configurations quite meet your needs (you may certainly submit a ticket or pull request for new features), you can provide a custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) with the ``comparator`` property. Note that you'll have to get a reference to the DsSorter element and set the property. If you use the ``selector`` attribute, then the comparison function will be passed the elements queried with the selector. You can also still use the ``descending`` attribute to sort the elements in reverse order.
 
 Mouseover the example to bind the custom sort function that sorts by the length of text in each paragraph. 
 ```js preview-story
 export const Custom = () => html`
-  <ds-sorter onmouseover="this.custom = (a, b) => a.innerText.length - b.innerText.length">
+  <ds-sorter onmouseover="this.comparator = (a, b) => a.innerText.length - b.innerText.length">
     <p>A good amount of text</p>
     <p>A pretty large amount of text</p>
     <p>Just a little text</p>
