@@ -5,7 +5,26 @@ import { html, LitElement, property } from 'lit-element';
 // TODO: Handle comparing different types? 
 // TODO: Allow selector per attr/prop in 'by'?
 // TODO: Throw warning if selector returns null?
-const stringToArray = (value: string | null) => value?.split(/,\s*/) ?? []
+// TODO: by nested property? e.g. '.styles.color'
+
+/**
+ * Allows passing either a string of comma-separated values (e.g. "value1, value2, value3") for easier HTML usage or an array of strings for framework usage
+ * @param value Either a string of comma-separated values or an array
+ * 
+ */
+const stringToArray = (value: string | null) => {
+  if (!value) { return [] }
+  try {
+    const parsed = JSON.parse(value!)
+    if (Array.isArray(parsed)) return parsed
+  } catch (_) {
+    // Fall through
+  }
+  if (typeof value === 'string') {
+    return value.split(/,\s*/)
+  }
+  throw new Error(`${value} is not a string or parsable JSON array`)
+} 
 /**
  * A web component for sorting contained elements
  * @element ds-sorter
