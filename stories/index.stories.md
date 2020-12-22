@@ -6,7 +6,7 @@ export default {
   title: 'DsSorter',
   component: 'ds-sorter',
   options: { selectedPanel: "storybookjs/knobs/panel" },
-  decorators: [withKnobs, /* withWebComponentsKnobs */],
+  decorators: [withKnobs],
   parameters: {
     knobs: {
       escapeHTML: false
@@ -50,10 +50,14 @@ import 'ds-sorter/ds-sorter.js';
 ## API
 <sb-props of="ds-sorter"></sb-props>
 
+### Methods
+#### sort
+Manually triggers a sort
+
 ## Playground
 ```js preview-story
-export const Playground = ({ random, by, selector, reverse, comparator, descending}) => html`
-  <ds-sorter ?random=${boolean('random', true)} by=${text('by', 'class')} selector=${text('selector', '')} reverse=${text('reverse', '')} .comparator=${comparator} ?descending=${boolean('descending', false)}>
+export const Playground = ({ random, by, comparator, descending}) => html`
+  <ds-sorter ?random=${boolean('random', true)} by=${text('by', 'class')} .comparator=${comparator} ?descending=${boolean('descending', false)}>
     <div class="B"><p class="A"><span class="C">div B, p A, span C</span></p></div>
     <div class="C"><p class="B"><span class="A">div C, p B, span A</span></p></div>
     <div class="A"><p class="C"><span class="B">div A, p C, span B</span></p></div>
@@ -63,6 +67,8 @@ export const Playground = ({ random, by, selector, reverse, comparator, descendi
 
 ## Examples
 
+###### Default
+By default, the elements are sorted by their text content in alphabetical order (or more accurately by the contents' UTF-16 code units order)
 ```js preview-story
 export const Default = () => html`
   <ds-sorter>
@@ -126,10 +132,10 @@ export const SortMethod = () => html`
 ``` 
 
 ##### Select Descendant
-In many cases, the attribute or property you want to sort by isn't directly on a child element of the DsSorter element. In these cases, you can use the ``selector`` attribute to specify a CSS selector to use off of each top-level element to grab one of its descendants. Note, you can use ``:scope`` to refer to the top-level element, say if you want to specify that a descendant is a direct child.
+In many cases, the attribute or property you want to sort by isn't directly on a child element of the DsSorter element. In these cases, you can specify a CSS selector in curly braces before the name to query the sorted element's descendants with. Note, you can use ``:scope`` to refer to the sorted element, say if you want to specify that a descendant is a direct child.
 ```js preview-story
 export const SelectDescendant = () => html`
-  <ds-sorter by="class" selector=":scope > p > span">
+  <ds-sorter by="{:scope > p > span} class" selector=":scope > p > span">
     <div><p><span class="C">This is a span with class C inside a paragraph inside a div</span></p></div>
     <div><p><span class="A">This is a span with class A inside a paragraph inside a div</span></p></div>
     <div><p><span class="B">This is a span with class B inside a paragraph inside a div</span></p></div>
@@ -138,10 +144,10 @@ export const SelectDescendant = () => html`
 ``` 
 
 ##### Multiple Attributes and/or Properties
-In scenarios where values might match, you might want to provide a fallback attribute or property to break the tie, per se. You can add more attributes or properties with commas in the ``by`` attributes. You can provide as many as you need, mixing attributes and properties. 
+In scenarios where values might match, you might want to provide a fallback attribute or property to break the tie, per se. You can add more attributes or properties with commas in the ``by`` attributes. You can provide as many as you need, mixing attributes and properties with different selectors each. 
 ```js preview-story
 export const MultipleBy = () => html`
-  <ds-sorter by=".innerText, href" selector="a">
+  <ds-sorter by=".innerText, {a} href">
     <p><a href="#soThisWillComeSecond">Hey, these links match!</a></p>
     <p><a href="#awesome">This link will still come last even though the href would come first if we were sorting primarily by href.</a></p>
     <p><a href="#butNotTheHrefs">Hey, these links match!</a></p>
@@ -149,11 +155,11 @@ export const MultipleBy = () => html`
 `;
 ``` 
 
-##### Reverse Order Values
-When using multiple attributes and/or properties, you may want certain ones to be sorted in descending order for their values instead of ascending order (and vice verse). For these attributes and properties, list them in the ``reverse`` attribute separated by commas.
+##### Descending
+If you want to reverse the order of the whole list, apply the ``descending`` attribute.
 ```js preview-story
-export const Reverse = () => html`
-  <ds-sorter by="class, id" reverse="id">
+export const Descending = () => html`
+  <ds-sorter by="class, id" descending>
     <p class="b" id="3">Class B, ID 3</p>
     <p class="b" id="1">Class B, ID 1</p>
     <p class="c">Class C</p>
@@ -163,11 +169,11 @@ export const Reverse = () => html`
 `;
 ``` 
 
-##### Descending
-If you want to reverse the order of the whole list, apply the ``descending`` attribute.
+##### Reverse Order Values
+When using multiple attributes and/or properties, you may want to reverse their sort relative to the rest of the list. For these attributes and properties, prepend a ">" before the name
 ```js preview-story
-export const Descending = () => html`
-  <ds-sorter by="class, id" reverse="id" descending>
+export const Reverse = () => html`
+  <ds-sorter by="class, >id" descending>
     <p class="b" id="3">Class B, ID 3</p>
     <p class="b" id="1">Class B, ID 1</p>
     <p class="c">Class C</p>
@@ -178,7 +184,7 @@ export const Descending = () => html`
 ``` 
 
 ##### Custom Sorting
-Finally, if none of the available configurations quite meet your needs (you may certainly submit a ticket or pull request for new features), you can provide a custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) with the ``comparator`` property. Note that you'll have to get a reference to the DsSorter element and set the property. If you use the ``selector`` attribute, then the comparison function will be passed the elements queried with the selector. You can also still use the ``descending`` attribute to sort the elements in reverse order.
+Finally, if none of the available configurations quite meet your needs (you may certainly submit a ticket or pull request for new features), you can provide a custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) with the ``comparator`` property. Note that you'll have to get a reference to the DsSorter element and set the property. You can also still use the ``descending`` attribute to sort the elements in reverse order.
 
 Mouseover the example to bind the custom sort function that sorts by the length of text in each paragraph. 
 ```js preview-story

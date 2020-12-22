@@ -1,35 +1,71 @@
 import { html, LitElement, property } from 'lit-element';
 // TODO: Todo list example
-// TODO: Cast attributes? (+ number, ? boolean, : array)
 // TODO: Implement PRNG with optional seed?
 // TODO: Handle comparing different types? 
-// TODO: Allow selector per attr/prop in 'by'?
 // TODO: Throw warning if selector returns null?
-// TODO: by nested property? e.g. '.styles.color'
+// TODO: Throw warning if nestedProps return undefined
+
+export interface Rule {
+  /** Attribute or property name */
+  key: string;
+  /** True if property, else attribute. Note: attributes will automatically trigger a re-sort if changed. Properties will not. */
+  isProperty?: boolean;
+  /** Selector for descendant to get attribute/property off of */
+  selector?: string;
+  /** If true, sort in reverse order relative to the global sort direction */
+  reverse?: boolean;
+  /** A path of properties to get the value from nested objects */
+  nestedProps?: string[];
+}
 
 /**
- * Allows passing either a string of comma-separated values (e.g. "value1, value2, value3") for easier HTML usage or an array of strings for framework usage
- * @param value Either a string of comma-separated values or an array
- * 
+ * Allows passing either a string of encoded rules or a stringified JSON array of Rule objects
  */
-const stringToArray = (value: string | null) => {
-  if (!value) { return [] }
+const parseToRules = (value: string | null): Rule[] => {
+  if (!value) return [] 
   try {
     const parsed = JSON.parse(value!)
+    // TODO: Validate schema?
     if (Array.isArray(parsed)) return parsed
   } catch (_) {
     // Fall through
   }
   if (typeof value === 'string') {
-    return value.split(/,\s*/)
+    const stringRules = value.split(/,\s*(?![^{}]*\})/)
+    return stringRules.map(stringRule => {
+      const [rawKey, selector] = stringRule.replace('{', '').split(/\}\s*/).reverse()
+      let key = rawKey
+      let reverse = false
+      let isProperty = false
+      let nestedProps: string[] = []
+      if (key[0] === '>') {
+        reverse = true
+        key = key.slice(1)
+      }
+      if (key[0] === '.') {
+        isProperty = true;
+        [, key, ...nestedProps ] = key.split('.')
+      }
+      return {
+        key,
+        selector,
+        reverse,
+        isProperty,
+        nestedProps
+      }
+    })
   }
-  throw new Error(`${value} is not a string or parsable JSON array`)
-} 
+  throw new Error(`${value} is not a string nor parsable JSON array`)
+}
+
 /**
  * A web component for sorting contained elements
+ * 
  * @element ds-sorter
  * 
  * @slot - Content to sort
+ * 
+ * @attr {String} by - A list of comma-separated rules to sort by in order of precedence. <br/>Specify attributes by name (e.g. "href"). If specifying a property, prepend with "." (e.g. ".innerText"). <br/>Optionally, if you'd like to reverse a rule relative to the others, prepend a ">" (e.g. "href, >.innerText"). <br/>Finally, if you'd like to get a value of a descendant of the sorted element, wrap a selector in braces before the value and modifiers (e.g. {div label input} .checked).
  */
 export class DsSorter extends LitElement {
 
@@ -39,10 +75,9 @@ export class DsSorter extends LitElement {
   @property({type: Boolean}) random = false
 
   /**
-   * A list of keys to sort by in order. By default, key is assumed to be for an attribute. Changes to any listed attributes on any of the children will automatically cause a re-sort. 
-   * To use a property, prepend "." to the key (e.g. ".checked"). Note that an automatic re-sort won't be triggered for property changes. In those scenarios, it's recommended to listen for events involved in the changing property (e.g. for checked, listen for change event)
+   * A list of rules to sort the elements by. Refer to Rule interface for properties.
    */
-  @property({converter:  stringToArray}) by = ['.innerText']
+  @property({converter:  parseToRules}) by: Rule[] = [{ key: 'innerText', isProperty: true }]
 
   /**
    * Custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) for sorting
@@ -54,28 +89,16 @@ export class DsSorter extends LitElement {
    */
   @property({type: Boolean}) descending = false
 
-  /**
-   * Any keys to reverse the order of relative to the rest
-   */
-  @property({converter: stringToArray}) reverse: string[] = []
-
-  /**
-   * Optionally provide a selector with which to grab a descendent of the element being sorted to use the prop/attr/elem of (e.g. ul>ds-sort>li>a>span ':scope > a > span')
-   */
-  @property({type: String}) selector = ''
-
-  private get sortingAttributes() {
-    return this.by.filter(item => item[0] !== '.')
-  }
-
   private get _slottedContent() {
     return Array.from(this.shadowRoot?.querySelector('slot')?.assignedElements() ?? []) as HTMLElement[]
   }
 
   private _mutationObserver = new MutationObserver(mutationList => {
-    const shouldUpdate = mutationList.some(mutation => mutation.type === 'attributes' && this.sortingAttributes.length)
+    const shouldUpdate = mutationList.some(mutation => mutation.type === 'attributes')
     if (shouldUpdate) this.sort()
   })
+
+  private _elementAttrsMap = new WeakMap<HTMLElement, Set<string>>()
 
   disconnectedCallback() {
     super.disconnectedCallback()
@@ -85,8 +108,16 @@ export class DsSorter extends LitElement {
   updated() {
       this.sort()
       this._slottedContent.forEach(elem => {
-        const observeElem = (this.selector ? elem.querySelector(this.selector) : elem) as HTMLElement
-        this._mutationObserver.observe(observeElem, { attributes: true, attributeFilter: this.sortingAttributes })
+        this.by.forEach(rule => {
+          const { key, selector, isProperty } = rule
+          if (!isProperty) {
+            const observeElem = (selector ? elem.querySelector(selector) : elem) as HTMLElement
+            const attributeSet = this._elementAttrsMap.get(observeElem) ?? new Set()
+            attributeSet.add(key)
+            this._elementAttrsMap.set(observeElem, attributeSet)
+            this._mutationObserver.observe(observeElem, { attributeFilter: Array.from(attributeSet) })
+          }
+        })
       })
   }
 
@@ -100,39 +131,34 @@ export class DsSorter extends LitElement {
    * @method
    * Manually trigger a sort, such as in response to an event e.g. <ds-sorter onchange="this.sort()">...</ds-sort>
    */
-  sort = () => {
-    this._slottedContent.sort(this.#sorter)
+  sort(): void {
+    this._slottedContent.sort(this.#compareElements)
       .forEach((el, i) => (el.parentElement?.children[i] !== el) && el.parentElement?.appendChild(el))
   }
 
-  #sorter = (a: HTMLElement, b: HTMLElement): number => {
+  #compareElements = (a: HTMLElement, b: HTMLElement, rules = this.by): number => {
     if (this.random) {
       return Math.random() - 0.5
     }
 
-    const firstElem = (this.selector ? a.querySelector(this.selector) : a) as HTMLElement
-    const secondElem = (this.selector ? b.querySelector(this.selector) : b) as HTMLElement
-
-    return this.#compareElements(firstElem, secondElem)
-  }
-
-  #compareElements = (firstElem: HTMLElement, secondElem: HTMLElement, keys = this.by): number => {
     if (this.comparator) {
-      return this.comparator(firstElem, secondElem) * (this.descending ? -1 : 1)
+      return this.comparator(a, b) * (this.descending ? -1 : 1)
     }
-    const [key, ...restKeys] = keys
-    const firstVal = this.#getValue(firstElem, key)
-    const secondVal = this.#getValue(secondElem, key)
 
-    const invertValue = this.descending != this.reverse.includes(key)
+    const [rule, ...restRules] = rules
+    const { reverse = false } = rule
+
+    const firstVal = this.#getValue(a, rule)
+    const secondVal = this.#getValue(b, rule)
+
+    const invertValue = this.descending != reverse
     const [lesser, greater] = invertValue ? [1, -1] : [-1, 1]
-
 
     if ((firstVal == undefined && secondVal == undefined) || firstVal === secondVal) {
       // If current values are equal, move down the keys until something isn't equal or we run out of keys
-      return restKeys.length && this.#compareElements(firstElem, secondElem, restKeys)
+      return restRules.length && this.#compareElements(a, b, restRules)
     }
-    // defined falsey value is greater than undefined
+    // defined falsy value is greater than undefined
     if (firstVal == undefined && secondVal != undefined) {
       return lesser
     }
@@ -147,11 +173,18 @@ export class DsSorter extends LitElement {
   }
 
   /** Normalize value for comparison */
-  #getValue = (elem: HTMLElement, key: string) => {
+  #getValue = (sortingElem: HTMLElement, rule: Rule) => {
+    const { key, isProperty, nestedProps = [], selector } = rule
+    const elem = (selector ? sortingElem.querySelector(selector) : sortingElem) as HTMLElement
     // Attributes are always strings
-    if (key[0] !== '.') return elem.getAttribute(key)
-    const propKey = key.substr(1) as keyof HTMLElement
-    const prop = elem[propKey]
+    if (!isProperty) return elem.getAttribute(key)
+
+    let prop = elem[key as keyof HTMLElement]
+    for (const nestedProp of nestedProps) {
+      if (typeof prop !== 'object') break
+      prop = prop?.[nestedProp as keyof typeof prop]
+    }
+    
     const returnAsIs: typeof prop[]  = ['number', 'string', 'boolean', 'bigint', 'undefined']
     const typeofProp = typeof prop
     

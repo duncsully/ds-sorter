@@ -25,16 +25,16 @@
           <p>5</p>
         </ds-sorter>
 
-        <ds-sorter by="class" descending>
-          <p class="d">D</p>
-          <p class="c">C</p>
-          <p class="a">A</p>
-          <p class="e">E</p>
-          <p class="b">B</p>
+        <ds-sorter by=".style.color" descending>
+          <p class="d" style="color: red;">D</p>
+          <p class="c" style="color: blue;">C</p>
+          <p class="a style="color: black;">A</p>
+          <p class="e" style="color: purple;">E</p>
+          <p class="b" style="color: cyan;">B</p>
         </ds-sorter>
         
         <ul>
-          <ds-sorter by=".innerText, href" selector="a" reverse="href">
+          <ds-sorter by="{a}.innerText, {a} href">
             <li><a href="#lessawesome">Hey!</a></li>
             <li><a href="#awesome">Hey!</a></li>
             <li><a href="#sick">Cool</a></li>

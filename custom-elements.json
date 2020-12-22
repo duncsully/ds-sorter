@@ -14,27 +14,15 @@
         },
         {
           "name": "by",
-          "description": "A list of keys to sort by in order. By default, key is assumed to be for an attribute. Changes to any listed attributes on any of the children will automatically cause a re-sort. \nTo use a property, prepend \".\" to the key (e.g. \".checked\"). Note that an automatic re-sort won't be triggered for property changes. In those scenarios, it's recommended to listen for events involved in the changing property (e.g. for checked, listen for change event)",
+          "description": " A list of comma-separated rules to sort by in order of precedence. <br/>Specify attributes by name (e.g. \"href\"). If specifying a property, prepend with \".\" (e.g. \".innerText\"). <br/>Optionally, if you'd like to reverse a rule relative to the others, prepend a \">\" (e.g. \"href, >.innerText\"). <br/>Finally, if you'd like to get a value of a descendant of the sorted element, wrap a selector in braces before the value and modifiers (e.g. {div label input} .checked).",
           "type": "string",
-          "default": "\".innerText\""
+          "default": ".innerText"
         },
         {
           "name": "descending",
           "description": "Sort in descending order (else ascending is default)",
           "type": "boolean",
           "default": "false"
-        },
-        {
-          "name": "reverse",
-          "description": "Any keys to reverse the order of relative to the rest",
-          "type": "string",
-          "default": "\"\""
-        },
-        {
-          "name": "selector",
-          "description": "Optionally provide a selector with which to grab a descendent of the element being sorted to use the prop/attr/elem of (e.g. ul>ds-sort>li>a>span ':scope > a > span')",
-          "type": "string",
-          "default": "\"\""
         }
       ],
       "properties": [
@@ -48,9 +36,9 @@
         {
           "name": "by",
           "attribute": "by",
-          "description": "A list of keys to sort by in order. By default, key is assumed to be for an attribute. Changes to any listed attributes on any of the children will automatically cause a re-sort. \nTo use a property, prepend \".\" to the key (e.g. \".checked\"). Note that an automatic re-sort won't be triggered for property changes. In those scenarios, it's recommended to listen for events involved in the changing property (e.g. for checked, listen for change event)",
-          "type": "string[]",
-          "default": "[\".innerText\"]"
+          "description": "A list of rules to sort the elements by. Refer to Rule interface for properties.",
+          "type": "Rule[]",
+          "default": "[{\"key\":\"innerText\",\"isProperty\":true}]"
         },
         {
           "name": "comparator",
@@ -64,25 +52,12 @@
           "description": "Sort in descending order (else ascending is default)",
           "type": "boolean",
           "default": "false"
-        },
-        {
-          "name": "reverse",
-          "attribute": "reverse",
-          "description": "Any keys to reverse the order of relative to the rest",
-          "type": "string[]",
-          "default": "[]"
-        },
-        {
-          "name": "selector",
-          "attribute": "selector",
-          "description": "Optionally provide a selector with which to grab a descendent of the element being sorted to use the prop/attr/elem of (e.g. ul>ds-sort>li>a>span ':scope > a > span')",
-          "type": "string",
-          "default": "\"\""
-        },
+        }
+      ],
+      "methods": [
         {
           "name": "sort",
-          "type": "() => void",
-          "default": "\"() => {\\n    this._slottedContent.sort(this.#sorter)\\n      .forEach((el, i) => (el.parentElement?.children[i] !== el) && el.parentElement?.appendChild(el))\\n  }\""
+          "description": "Manually trigger a sort, such as in response to an event e.g. <ds-sorter onchange=\"this.sort()\">...</ds-sort>"
         }
       ],
       "slots": [
