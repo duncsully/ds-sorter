@@ -108,7 +108,7 @@ export const ByHref = () => html`
 ```
 
 ##### By Property
-You can specify a property with the ``by`` attribute, too. To distinguish a property from an attribute, add a '.' before the property name e.g. ``.value``. ``Undefined`` or ``null`` values will be considered less than any defined value. Strings, numbers, and booleans will be sorted as expected. Array-like objects will be sorted by length. Functions will be sorted boolean style based on whether a function is present or not. Finally, all other objects will attempt to use their ``.valueOf()`` method, else they return ``undefined``. Note that, unlike attributes, changes to sorted property values won't automatically trigger a re-sort. When sorting by properties that you expect to change, it's recommended to listen for an event related to that value being changed, such as a change event on inputs. The next example demonstrates how you can do this. 
+You can specify a property with the ``by`` attribute, too. To distinguish a property from an attribute, add a '.' before the property name e.g. ``.value``. Values that are ``undefined`` or ``null`` will be considered less than any defined value. Strings, numbers, and booleans will be sorted as expected. Array-like objects will be sorted by length. Functions will be sorted boolean style based on whether a function is present or not. Finally, all other objects will attempt to use their ``.valueOf()`` method, else they return ``undefined``. Note that, unlike attributes, changes to sorted property values won't automatically trigger a re-sort. When sorting by properties that you expect to change, it's recommended to listen for an event related to that value being changed, such as a change event on inputs. The next example demonstrates how you can do this. 
 ```js preview-story
 export const ByValue = () => html`
   <ds-sorter by=".value">
@@ -135,7 +135,7 @@ export const SortMethod = () => html`
 In many cases, the attribute or property you want to sort by isn't directly on a child element of the DsSorter element. In these cases, you can specify a CSS selector in curly braces before the name to query the sorted element's descendants with. Note, you can use ``:scope`` to refer to the sorted element, say if you want to specify that a descendant is a direct child.
 ```js preview-story
 export const SelectDescendant = () => html`
-  <ds-sorter by="{:scope > p > span} class" selector=":scope > p > span">
+  <ds-sorter by="{:scope > p > span} class">
     <div><p><span class="C">This is a span with class C inside a paragraph inside a div</span></p></div>
     <div><p><span class="A">This is a span with class A inside a paragraph inside a div</span></p></div>
     <div><p><span class="B">This is a span with class B inside a paragraph inside a div</span></p></div>
@@ -186,15 +186,15 @@ export const Reverse = () => html`
 ##### Custom Sorting
 Finally, if none of the available configurations quite meet your needs (you may certainly submit a ticket or pull request for new features), you can provide a custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) with the ``comparator`` property. Note that you'll have to get a reference to the DsSorter element and set the property. You can also still use the ``descending`` attribute to sort the elements in reverse order.
 
-Mouseover the example to bind the custom sort function that sorts by the length of text in each paragraph. 
+Click/tap the example to bind the custom sort function that sorts by the length of text in each paragraph. 
 ```js preview-story
 export const Custom = () => html`
-  <ds-sorter onmouseover="this.comparator = (a, b) => a.innerText.length - b.innerText.length">
+  <ds-sorter onclick="this.comparator = (a, b) => a.innerText.length - b.innerText.length">
     <p>A good amount of text</p>
-    <p>A pretty large amount of text</p>
+    <p>A pretty decent amount of text</p>
     <p>Just a little text</p>
     <p>Some text</p>
-    <p>An unnecessarily huge amount of text for demonstration purposes.</p>
+    <p>An unnecessarily large amount of text for demonstration purposes.</p>
   </ds-sorter>
 `;
 ``` 
