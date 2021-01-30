@@ -1,9 +1,6 @@
 import { html, LitElement, property } from 'lit-element';
-// TODO: Todo list example
 // TODO: Implement PRNG with optional seed?
 // TODO: Handle comparing different types? 
-// TODO: Throw warning if selector returns null?
-// TODO: Throw warning if nestedProps return undefined
 
 export interface Rule {
   /** Attribute or property name */
@@ -151,8 +148,8 @@ export class DsSorter extends LitElement {
     const firstVal = this.#getValue(a, rule)
     const secondVal = this.#getValue(b, rule)
 
-    const invertValue = this.descending != reverse
-    const [lesser, greater] = invertValue ? [1, -1] : [-1, 1]
+    const lesser = (this.descending != reverse) ? 1 : -1
+    const greater = -lesser
 
     if ((firstVal == undefined && secondVal == undefined) || firstVal === secondVal) {
       // If current values are equal, move down the keys until something isn't equal or we run out of keys
@@ -176,13 +173,24 @@ export class DsSorter extends LitElement {
   #getValue = (sortingElem: HTMLElement, rule: Rule) => {
     const { key, isProperty, nestedProps = [], selector } = rule
     const elem = (selector ? sortingElem.querySelector(selector) : sortingElem) as HTMLElement
+    if (elem === null) {
+      console.warn(`ds-sorter: Selector ${selector} did not return an element`)
+      return undefined
+    }
     // Attributes are always strings
     if (!isProperty) return elem.getAttribute(key)
 
     let prop = elem[key as keyof HTMLElement]
+    let prevProp = key
     for (const nestedProp of nestedProps) {
-      if (typeof prop !== 'object') break
-      prop = prop?.[nestedProp as keyof typeof prop]
+      if (typeof prop !== 'object') {
+        console.warn(`ds-sorter: Cannot access nested property '${nestedProp}' on element because property '${prevProp}' is not an object`, elem)
+      } else if (prop?.hasOwnProperty(nestedProp)) {
+        prop = prop[nestedProp as keyof typeof prop]
+      } else {
+        console.warn(`ds-sorter: Element property '${prevProp}' does not contain nested property '${nestedProp}'`, elem)
+      }
+      prevProp = nestedProp
     }
     
     const returnAsIs: typeof prop[]  = ['number', 'string', 'boolean', 'bigint', 'undefined']
@@ -196,7 +204,7 @@ export class DsSorter extends LitElement {
       return true
     }
     if (typeofProp === 'object') {
-      // If array-like, return the length, else get the valueOf value (which for strings, numbers, and booleans should just return as is, objects should use the method if it's implemented)
+      // If array-like, return the length, else get the valueOf value if it's implemented)
       return (prop as ArrayLike<unknown>)?.length ?? prop?.valueOf?.()
     }
     return undefined
