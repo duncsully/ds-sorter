@@ -74,7 +74,7 @@ export class DsSorter extends LitElement {
   /**
    * A list of rules to sort the elements by. Refer to Rule interface for properties.
    */
-  @property({converter:  parseToRules}) by: Rule[] = [{ key: 'innerText', isProperty: true }]
+  @property({converter: parseToRules}) by: Rule[] = [{ key: 'innerText', isProperty: true }]
 
   /**
    * Custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) for sorting
@@ -90,16 +90,16 @@ export class DsSorter extends LitElement {
     return Array.from(this.shadowRoot?.querySelector('slot')?.assignedElements() ?? []) as HTMLElement[]
   }
 
-  private _mutationObserver = new MutationObserver(mutationList => {
+  #mutationObserver = new MutationObserver(mutationList => {
     const shouldUpdate = mutationList.some(mutation => mutation.type === 'attributes')
     if (shouldUpdate) this.sort()
   })
 
-  private _elementAttrsMap = new WeakMap<HTMLElement, Set<string>>()
+  #elementAttrsMap = new WeakMap<HTMLElement, Set<string>>()
 
   disconnectedCallback() {
     super.disconnectedCallback()
-    this._mutationObserver.disconnect()
+    this.#mutationObserver.disconnect()
   }
 
   updated() {
@@ -109,10 +109,10 @@ export class DsSorter extends LitElement {
           const { key, selector, isProperty } = rule
           if (!isProperty) {
             const observeElem = (selector ? elem.querySelector(selector) : elem) as HTMLElement
-            const attributeSet = this._elementAttrsMap.get(observeElem) ?? new Set()
+            const attributeSet = this.#elementAttrsMap.get(observeElem) ?? new Set()
             attributeSet.add(key)
-            this._elementAttrsMap.set(observeElem, attributeSet)
-            this._mutationObserver.observe(observeElem, { attributeFilter: Array.from(attributeSet) })
+            this.#elementAttrsMap.set(observeElem, attributeSet)
+            this.#mutationObserver.observe(observeElem, { attributeFilter: Array.from(attributeSet) })
           }
         })
       })
@@ -131,6 +131,7 @@ export class DsSorter extends LitElement {
   sort(): void {
     this._slottedContent.sort(this.#compareElements)
       .forEach((el, i) => (el.parentElement?.children[i] !== el) && el.parentElement?.appendChild(el))
+    this.dispatchEvent(new CustomEvent('ds-sort', { composed: true, bubbles: true }))
   }
 
   #compareElements = (a: HTMLElement, b: HTMLElement, rules = this.by): number => {
