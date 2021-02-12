@@ -188,10 +188,7 @@ export class DsSorter extends LitElement {
     let prop = elem[key as keyof HTMLElement]
     let prevProp = key
     for (const nestedProp of nestedProps) {
-      if (prop == undefined) {
-        return undefined
-      }
-      if (typeof prop !== 'object') {
+      if (prop == undefined || typeof prop !== 'object') {
         console.warn(`ds-sorter: Cannot access nested property '${nestedProp}' on element because property '${prevProp}' is not an object`, elem)
         return undefined
       } 
@@ -207,7 +204,7 @@ export class DsSorter extends LitElement {
     const returnAsIs: typeof prop[]  = ['number', 'string', 'boolean', 'bigint', 'undefined']
     const typeofProp = typeof prop
     
-    if (returnAsIs.includes(typeofProp)) {
+    if (returnAsIs.includes(typeofProp) || prop === null) {
       return prop
     }
     if (typeofProp === 'function') {
