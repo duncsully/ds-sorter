@@ -43,6 +43,13 @@ const parseToRules = (value: string | null): Rule[] => {
         isProperty = true;
         [, key, ...nestedProps ] = key.split('.')
       }
+
+      // Default to .innerText if selector and/or reverse but no key 
+      if (key === undefined || key === '') {
+        isProperty = true
+        key = 'innerText'
+      }
+      
       return {
         key,
         selector,
