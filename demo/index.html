@@ -43,14 +43,16 @@
           </ds-sorter>
         </ul>
 
-        <ds-sorter by=".checked" onchange="this.sort()">
-          <input type="checkbox"/>
-          <input type="checkbox"/>
-          <input type="checkbox" checked/>
-          <input type="checkbox"/>
-          <input type="checkbox" checked/>
-          <input type="checkbox"/>
-        </ds-sorter>
+        <ul style="list-style: none; padding-inline-start: 0;">
+          <ds-sorter by="{input}.checked, .innerText" onchange="this.sort()">
+            <li><label><input type="checkbox"/>Corn</label></li>
+            <li><label><input type="checkbox"/>Milk</label></li>
+            <li><label><input type="checkbox" checked/>Cheese</label></li>
+            <li><label><input type="checkbox"/>Bread</label></li>
+            <li><label><input type="checkbox" checked/>Nutmeg</label></li>
+            <li><label><input type="checkbox"/>Apples</label></li>
+          </ds-sorter>
+        </ul>
 
         <ds-sorter by="class">
           <p class='a' name="3">B class a name 3</p>

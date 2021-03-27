@@ -30,7 +30,7 @@ npm run lint:eslint
 npm run lint:prettier
 ```
 
-To automatically fix many linting errors, run
+To automatically fix any linting errors, run
 ```bash
 npm run format
 ```

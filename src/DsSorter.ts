@@ -1,6 +1,10 @@
-import { html, LitElement, property } from 'lit-element';
+import { html, LitElement, property } from 'lit-element'
 // TODO: Implement PRNG with optional seed?
 // TODO: Handle comparing different types? 
+// TODO: Add JSON validation
+// TODO: Update custom-elements.json
+// TODO: Update storybook
+// TODO: Cleanup readme
 
 export interface Rule {
   /** Attribute or property name */
@@ -15,51 +19,39 @@ export interface Rule {
   nestedProps?: string[];
 }
 
-/**
- * Allows passing either a string of encoded rules or a stringified JSON array of Rule objects
- */
 const parseToRules = (value: string | null): Rule[] => {
-  if (!value) return [] 
-  try {
-    const parsed = JSON.parse(value!)
-    // TODO: Validate schema?
-    if (Array.isArray(parsed)) return parsed
-  } catch (_) {
-    // Fall through
-  }
-  if (typeof value === 'string') {
-    const stringRules = value.split(/,\s*(?![^{}]*\})/)
-    return stringRules.map(stringRule => {
-      const [rawKey, selector] = stringRule.replace('{', '').split(/\}\s*/).reverse()
-      let key = rawKey
-      let reverse = false
-      let isProperty = false
-      let nestedProps: string[] = []
-      if (key[0] === '>') {
-        reverse = true
-        key = key.slice(1)
-      }
-      if (key[0] === '.') {
-        isProperty = true;
-        [, key, ...nestedProps ] = key.split('.')
-      }
+  if (!value) return [{ key: ''}] 
+  // TODO: Validate with regex?
+  const stringRules = value.split(/,\s*(?![^{}]*\})/)
+  return stringRules.map(stringRule => {
+    const [rawKey, selector] = stringRule.replace('{', '').split(/\}\s*/).reverse()
+    let key = rawKey
+    let reverse = false
+    let isProperty = false
+    let nestedProps: string[] = []
+    if (key[0] === '>') {
+      reverse = true
+      key = key.slice(1)
+    }
+    if (key[0] === '.') {
+      isProperty = true;
+      [, key, ...nestedProps ] = key.split('.')
+    }
 
-      // Default to .innerText if selector and/or reverse but no key 
-      if (key === undefined || key === '') {
-        isProperty = true
-        key = 'innerText'
-      }
-      
-      return {
-        key,
-        selector,
-        reverse,
-        isProperty,
-        nestedProps
-      }
-    })
-  }
-  throw new Error(`${value} is not a string nor parsable JSON array`)
+    // Default to .innerText if selector and/or reverse but no key 
+    if (key === undefined || key === '') {
+      isProperty = true
+      key = 'innerText'
+    }
+    
+    return {
+      key,
+      selector,
+      reverse,
+      isProperty,
+      nestedProps
+    }
+  })
 }
 
 /**
@@ -68,8 +60,6 @@ const parseToRules = (value: string | null): Rule[] => {
  * @element ds-sorter
  * 
  * @slot - Content to sort
- * 
- * @attr {String} by - A list of comma-separated rules to sort by in order of precedence. <br/>Specify attributes by name (e.g. "href"). If specifying a property, prepend with "." (e.g. ".innerText"). <br/>Optionally, if you'd like to reverse a rule relative to the others, prepend a ">" (e.g. "href, >.innerText"). <br/>Finally, if you'd like to get a value of a descendant of the sorted element, wrap a selector in braces before the value and modifiers (e.g. {div label input} .checked).
  */
 export class DsSorter extends LitElement {
 
@@ -79,9 +69,23 @@ export class DsSorter extends LitElement {
   @property({type: Boolean}) random = false
 
   /**
-   * A list of rules to sort the elements by. Refer to Rule interface for properties.
+   * A list of comma-separated rules to sort by in order of precedence. <br/>Specify attributes by name (e.g. "href"). If specifying a property, prepend with "." (e.g. ".innerText"). <br/>Optionally, if you'd like to reverse a rule relative to the others, prepend a ">" (e.g. "href, >.innerText"). <br/>Finally, if you'd like to get a value of a descendant of the sorted element, wrap a selector in braces before the value and modifiers (e.g. {div label input} .checked).
    */
-  @property({converter: parseToRules}) by: Rule[] = [{ key: 'innerText', isProperty: true }]
+  @property() 
+  get by() {
+    return this.#by
+  }
+  set by(newBy) {
+    this.#by = newBy
+    // Will trigger update via rules prop, no need to do it here
+    this.rules = parseToRules(newBy)
+  }
+
+  /**
+   * A list of rule objects to sort the elements by. Refer to Rule interface for properties.
+   */
+  @property({type: Array}) 
+  rules: Rule[] = [{ key: 'innerText', isProperty: true }]
 
   /**
    * Custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) for sorting
@@ -112,7 +116,7 @@ export class DsSorter extends LitElement {
   updated() {
       this.sort()
       this._slottedContent.forEach(elem => {
-        this.by.forEach(rule => {
+        this.rules.forEach(rule => {
           const { key, selector, isProperty } = rule
           if (!isProperty) {
             const observeElem = (selector ? elem.querySelector(selector) : elem) as HTMLElement
@@ -141,7 +145,9 @@ export class DsSorter extends LitElement {
     this.dispatchEvent(new CustomEvent('ds-sort', { composed: true, bubbles: true }))
   }
 
-  #compareElements = (a: HTMLElement, b: HTMLElement, rules = this.by): number => {
+  #by = ''
+
+  #compareElements = (a: HTMLElement, b: HTMLElement, rules = this.rules): number => {
     if (this.random) {
       return Math.random() - 0.5
     }
@@ -151,6 +157,8 @@ export class DsSorter extends LitElement {
     }
 
     const [rule, ...restRules] = rules
+    // No rule found, don't sort
+    if (!rule) { return 0 }
     const { reverse = false } = rule
 
     const firstVal = this.#getValue(a, rule)

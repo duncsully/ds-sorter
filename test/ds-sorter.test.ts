@@ -1,15 +1,16 @@
-import { html, fixture, expect } from '@open-wc/testing';
+import { fixture, expect } from '@open-wc/testing'
+import { html } from 'lit-html'
+import Sinon from 'sinon'
 import '../ds-sorter.js';
+import { DsSorter } from '../index.js';
 
 /* TODO: Tests
  * Parsing JSON rules
- * Directly setting by prop rules
- * Warnings
  */
 const getSortedPromise = (el: Element) => new Promise(res => {
   const handler = () => {
     el.removeEventListener('ds-sort', handler)
-    res()
+    res(undefined)
   }
   el.addEventListener('ds-sort', handler)
 })
@@ -112,6 +113,17 @@ describe('DsSorter', () => {
         }))
       })
 
+      it('can sort by nested property values', async () => {
+        const el = await fixture(html`<ds-sorter by=".dataset.arbitrary">
+          <input data-arbitrary="c" />
+          <input data-arbitrary="a" />
+          <input data-arbitrary="b" />
+        </ds-sorter>`);
+        (['a', 'b', 'c'].forEach((letter, i) => {
+          expect((el.children[i] as HTMLInputElement).dataset['arbitrary']).to.equal(letter)
+        }))
+      })
+
       it('can sort by array length', async () => {
         interface TestElement extends HTMLElement { test: number[] }
         const el = await fixture(html`<ds-sorter by='.test'>
@@ -136,6 +148,17 @@ describe('DsSorter', () => {
         }))
       })
 
+      it('can sort by whether function is present or not', async () => {
+        interface TestElement extends HTMLElement { test: () => number }
+        const testFunc = () => 1
+        const el = await fixture(html`<ds-sorter by=".test">
+          <input .test=${null} />
+          <input .test=${testFunc} />
+          <input .test=${null} />
+        </ds-sorter>`);
+        expect((el.children[2] as TestElement).test).to.equal(testFunc)
+      })
+
       it('considers null and undefined as less than falsy values', async () => {
         interface TestElement extends HTMLElement { test: undefined | null | number }
         const el = await fixture(html`<ds-sorter by='.test'>
@@ -155,6 +178,21 @@ describe('DsSorter', () => {
         </ds-sorter>`);
         ([1, 2, 3].forEach((num, i) => {
           expect((el.children[i].children[0].children[0] as TestElement).test).to.equal(num)
+        }))
+      })
+
+      it('will resort when changing the sorted attribute when using a selector', async () => {
+        interface TestElement extends HTMLElement { test: undefined | null | string }
+        const el = await fixture(html`<ds-sorter by='{:scope>p>b} test'>
+          <div>1<p>1<b test='c'></b></p></div>
+          <div>2<p>2<b test='a'></b></p></div>
+          <div>3<p>3<b test='b'></b></p></div>
+        </ds-sorter>`);
+        const sorted = getSortedPromise(el);
+        (el.children[0].children[0].children[0] as TestElement).setAttribute('test', 'd')
+        await sorted;
+        (['b', 'c', 'd'].forEach((letter, i) => {
+          expect((el.children[i].children[0].children[0] as TestElement).getAttribute('test')).to.equal(letter)
         }))
       })
 
@@ -206,6 +244,13 @@ describe('DsSorter', () => {
       })
   })
 
+  describe('attribute: rules', () => {
+    it('accepts a stringified Rules array', async () => {
+      const el = await fixture(html`<ds-sorter rules='[{"key": "id", "isProperty": true, "selector": "p > a", "reverse": true, "nestedProps": ["something", "somethingElse"]}]'></ds-sorter>`) as DsSorter
+      expect(el.rules).to.deep.equal([{key: "id", isProperty: true, selector: "p > a", reverse: true, nestedProps: ["something", "somethingElse"]}])
+    })
+  })
+
   describe('attribute: descending', () => {
     it('reverses the sort order', async () => {
       interface TestElement extends HTMLElement { test: undefined | null | number }
@@ -249,6 +294,51 @@ describe('DsSorter', () => {
       expect((el.children[0] as HTMLElement).innerText).to.equal('Lengthy')
       expect((el.children[1] as HTMLElement).innerText).to.equal('Medium')
       expect((el.children[2] as HTMLElement).innerText).to.equal('Short')
+    })
+  })
+
+  describe('console warnings', () => {
+    beforeEach(() => Sinon.spy(console, 'warn'))
+    afterEach(() => Sinon.restore())
+
+    it('should warn when no element returned from selector query', async () => {
+      await fixture(html`
+        <ds-sorter by="{a}">
+          <p>What</p>
+          <p>Who</p>
+        </ds-sorter>
+      `)
+      expect(console.warn).to.have.been.called
+    })
+
+    it('should warn when property does not exist on DOM element', async () => {
+      await fixture(html`
+        <ds-sorter by=".thisDoesNotExist">
+          <p>What</p>
+          <p>Who</p>
+        </ds-sorter>
+      `)
+      expect(console.warn).to.have.been.called
+    })
+
+    it('should warn when attempting to access nested property on value that is not an object', async () => {
+      await fixture(html`
+        <ds-sorter by=".id.isNotObject">
+          <p>What</p>
+          <p>Who</p>
+        </ds-sorter>
+      `)
+      expect(console.warn).to.have.been.called
+    })
+
+    it('should warn when attempting to access nested property that does not exist on object value', async () => {
+      await fixture(html`
+        <ds-sorter by=".dataset.thisDoesNotExist">
+          <p>What</p>
+          <p>Who</p>
+        </ds-sorter>
+      `)
+      expect(console.warn).to.have.been.called
     })
   })
 })
