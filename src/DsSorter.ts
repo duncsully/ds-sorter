@@ -5,18 +5,18 @@ import { html, LitElement, property } from 'lit-element'
 // TODO: Update custom-elements.json
 // TODO: Update storybook
 // TODO: Cleanup readme
+// TODO: Fix tests - just test that 'by' attr parses correctly. Move tests of behavior to rules prop
+// TODO: JSDoc Rule interface
 
 export interface Rule {
-  /** Attribute or property name */
-  key: string;
-  /** True if property, else attribute. Note: attributes will automatically trigger a re-sort if changed. Properties will not. */
-  isProperty?: boolean;
+  /** Attribute name, or array representing a path of properties. (e.g. el.innerText -> ['innerText'] or el.someObj.someChild.someGrandchild -> ['someObj', 'someChild', 'someGrandchild'])  </br>
+   * Note: Changes to values of sorted attributes will trigger a re-sort. Changes to sorted properties will not.
+  */
+  key: string | string[];
   /** Selector for descendant to get attribute/property off of */
   selector?: string;
   /** If true, sort in reverse order relative to the global sort direction */
   reverse?: boolean;
-  /** A path of properties to get the value from nested objects */
-  nestedProps?: string[];
 }
 
 const parseToRules = (value: string | null): Rule[] => {
@@ -25,31 +25,25 @@ const parseToRules = (value: string | null): Rule[] => {
   const stringRules = value.split(/,\s*(?![^{}]*\})/)
   return stringRules.map(stringRule => {
     const [rawKey, selector] = stringRule.replace('{', '').split(/\}\s*/).reverse()
-    let key = rawKey
+    let key: string | string[] = rawKey
     let reverse = false
-    let isProperty = false
-    let nestedProps: string[] = []
     if (key[0] === '>') {
       reverse = true
       key = key.slice(1)
     }
     if (key[0] === '.') {
-      isProperty = true;
-      [, key, ...nestedProps ] = key.split('.')
+      [, ...key ] = key.split('.')
     }
 
     // Default to .innerText if selector and/or reverse but no key 
     if (key === undefined || key === '') {
-      isProperty = true
-      key = 'innerText'
+      key = ['innerText']
     }
     
     return {
       key,
       selector,
       reverse,
-      isProperty,
-      nestedProps
     }
   })
 }
@@ -69,14 +63,13 @@ export class DsSorter extends LitElement {
   @property({type: Boolean}) random = false
 
   /**
-   * A list of comma-separated rules to sort by in order of precedence. <br/>Specify attributes by name (e.g. "href"). If specifying a property, prepend with "." (e.g. ".innerText"). <br/>Optionally, if you'd like to reverse a rule relative to the others, prepend a ">" (e.g. "href, >.innerText"). <br/>Finally, if you'd like to get a value of a descendant of the sorted element, wrap a selector in braces before the value and modifiers (e.g. {div label input} .checked).
+   * A list of comma-separated rules to sort by in order of precedence. <br/>Specify attributes by name (e.g. "href"). If specifying a property, prepend with "." (e.g. ".innerText"). You can use nested properties as well (e.g. ".dataset.row"). <br/>Optionally, if you'd like to reverse a rule relative to the others, prepend a ">" (e.g. "href, >.innerText"). <br/>Finally, if you'd like to get a value of a descendant of the sorted element, wrap a selector in braces before the value and modifiers (e.g. {div label input} .checked).
    */
   @property() 
   get by() {
-    return this.#by
+    return this.rules.map(rule => `${rule.reverse ? '>' : ''}${rule.selector ? `{${rule.selector}}` : ''} ${typeof rule.key === 'string' ? rule.key : '.' + rule.key.join('.')}`).join(', ')
   }
   set by(newBy) {
-    this.#by = newBy
     // Will trigger update via rules prop, no need to do it here
     this.rules = parseToRules(newBy)
   }
@@ -85,7 +78,7 @@ export class DsSorter extends LitElement {
    * A list of rule objects to sort the elements by. Refer to Rule interface for properties.
    */
   @property({type: Array}) 
-  rules: Rule[] = [{ key: 'innerText', isProperty: true }]
+  rules: Rule[] = [{ key: ['innerText'] }]
 
   /**
    * Custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) for sorting
@@ -117,8 +110,8 @@ export class DsSorter extends LitElement {
       this.sort()
       this._slottedContent.forEach(elem => {
         this.rules.forEach(rule => {
-          const { key, selector, isProperty } = rule
-          if (!isProperty) {
+          const { key, selector } = rule
+          if (typeof key === 'string') {
             const observeElem = (selector ? elem.querySelector(selector) : elem) as HTMLElement
             const attributeSet = this.#elementAttrsMap.get(observeElem) ?? new Set()
             attributeSet.add(key)
@@ -144,8 +137,6 @@ export class DsSorter extends LitElement {
       .forEach((el, i) => (el.parentElement?.children[i] !== el) && el.parentElement?.appendChild(el))
     this.dispatchEvent(new CustomEvent('ds-sort', { composed: true, bubbles: true }))
   }
-
-  #by = ''
 
   #compareElements = (a: HTMLElement, b: HTMLElement, rules = this.rules): number => {
     if (this.random) {
@@ -187,21 +178,23 @@ export class DsSorter extends LitElement {
 
   /** Normalize value for comparison */
   #getValue = (sortingElem: HTMLElement, rule: Rule) => {
-    const { key, isProperty, nestedProps = [], selector } = rule
+    const { key, selector } = rule
     const elem = (selector ? sortingElem.querySelector(selector) : sortingElem) as HTMLElement
     if (elem === null) {
       console.warn(`ds-sorter: Selector ${selector} did not return an element`)
       return undefined
     }
-    // Attributes are always strings
-    if (!isProperty) return elem.getAttribute(key)
+    
+    if (typeof key === 'string') return elem.getAttribute(key)
 
-    if (!(key in elem)) {
-      console.warn(`ds-sorter: Element does not have property '${key}'`)
+    const [firstProp, ...nestedProps] = key
+
+    if (!(firstProp in elem)) {
+      console.warn(`ds-sorter: Element does not have property '${firstProp}'`)
       return undefined
     }
-    let prop = elem[key as keyof HTMLElement]
-    let prevProp = key
+    let prop = elem[firstProp as keyof HTMLElement]
+    let prevProp = firstProp
     for (const nestedProp of nestedProps) {
       if (prop == undefined || typeof prop !== 'object') {
         console.warn(`ds-sorter: Cannot access nested property '${nestedProp}' on element because property '${prevProp}' is not an object`, elem)

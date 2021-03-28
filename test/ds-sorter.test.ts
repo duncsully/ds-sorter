@@ -246,8 +246,8 @@ describe('DsSorter', () => {
 
   describe('attribute: rules', () => {
     it('accepts a stringified Rules array', async () => {
-      const el = await fixture(html`<ds-sorter rules='[{"key": "id", "isProperty": true, "selector": "p > a", "reverse": true, "nestedProps": ["something", "somethingElse"]}]'></ds-sorter>`) as DsSorter
-      expect(el.rules).to.deep.equal([{key: "id", isProperty: true, selector: "p > a", reverse: true, nestedProps: ["something", "somethingElse"]}])
+      const el = await fixture(html`<ds-sorter rules='[{"key": ["id", "something", "somethingElse"], "selector": "p > a", "reverse": true}]'></ds-sorter>`) as DsSorter
+      expect(el.rules).to.deep.equal([{ key: ["id", "something", "somethingElse"], selector: "p > a", reverse: true }])
     })
   })
 
