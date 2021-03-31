@@ -177,7 +177,6 @@ export class DsSorter extends LitElement {
     return greater
   }
 
-  // TODO: Handle Symbols
   /** Normalize value for comparison */
   #getValue = (sortingElem: HTMLElement, rule: Rule) => {
     const { key, selector } = rule
@@ -211,20 +210,27 @@ export class DsSorter extends LitElement {
       prevProp = nestedProp
     }
     
-    const returnAsIs: typeof prop[]  = ['number', 'string', 'boolean', 'bigint', 'undefined']
-    const typeofProp = typeof prop
+    const returnAsIs: typeof prop[] = ['number', 'string', 'boolean', 'bigint', 'undefined']
 
-    if (returnAsIs.includes(typeofProp) || prop === null) {
+    if (returnAsIs.includes(typeof prop) || prop === null) {
       return prop
     }
-    if (typeofProp === 'function') {
+
+    // TS doesn't think this could ever be a symbol (e.g. someone sets a symbol as the value of a property on an element. Why would anyone do this? I don't know, but they can if they want to.)
+    if (typeof prop === 'symbol') {
+      return (prop as symbol).description
+    }
+
+    if (typeof prop === 'function') {
       // No good way to sort functions, just return that it exists
       return true
     }
-    if (typeofProp === 'object') {
-      // If array-like, return the length, else get the valueOf value if it's implemented)
+
+    if (typeof prop === 'object') {
+      // If array-like, return the length, else get the valueOf value if it's implemented
       return (prop as ArrayLike<unknown>)?.length ?? prop?.valueOf?.()
     }
+
     return undefined
   }
 }

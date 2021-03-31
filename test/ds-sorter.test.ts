@@ -220,6 +220,21 @@ describe('DsSorter', () => {
       expect((el.children[2] as TestElement).test).to.equal(testFunc)
     })
 
+    it('can sort by symbol values by using their descriptions', async () => {
+      const sym1 = Symbol('a')
+      const sym2 = Symbol('b')
+      const sym3 = Symbol('c')
+      interface TestElement extends HTMLElement { test: symbol }
+      const el = await fixture(html`<ds-sorter .rules=${[{key: ['test']}]}>
+        <input .test=${sym3} />
+        <input .test=${sym2} />
+        <input .test=${sym1} />
+      </ds-sorter>`);
+      (['a', 'b', 'c'].forEach((letter, i) => {
+        expect((el.children[i] as TestElement).test.description).to.equal(letter)
+      }))
+    })
+
     it('considers null and undefined as less than falsy values', async () => {
       interface TestElement extends HTMLElement { test: undefined | null | number }
       const el = await fixture(html`<ds-sorter .rules=${[{key: ['test']}]}>
