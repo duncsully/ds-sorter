@@ -3,9 +3,7 @@ import { html, LitElement, property } from 'lit-element'
 // TODO: Handle comparing different types? 
 // TODO: Add JSON validation
 // TODO: Update custom-elements.json
-// TODO: Update storybook
 // TODO: Cleanup readme
-// TODO: Fix tests - just test that 'by' attr parses correctly. Move tests of behavior to rules prop
 // TODO: JSDoc Rule interface
 
 export interface Rule {
@@ -20,17 +18,16 @@ export interface Rule {
 }
 
 const parseToRules = (value: string | null): Rule[] => {
-  if (!value) return [{ key: ''}] 
+  if (!value) return [] 
   // TODO: Validate with regex?
   const stringRules = value.split(/,\s*(?![^{}]*\})/)
   return stringRules.map(stringRule => {
     const [rawKey, selector] = stringRule.replace('{', '').split(/\}\s*/).reverse()
     let key: string | string[] = rawKey
-    let reverse = false
-    if (key[0] === '>') {
-      reverse = true
-      key = key.slice(1)
-    }
+
+    const reverse = key[0] === '>'
+    if (reverse) key = key.slice(1)
+
     if (key[0] === '.') {
       [, ...key ] = key.split('.')
     }
@@ -67,7 +64,7 @@ export class DsSorter extends LitElement {
    */
   @property() 
   get by() {
-    return this.rules.map(rule => `${rule.reverse ? '>' : ''}${rule.selector ? `{${rule.selector}}` : ''} ${typeof rule.key === 'string' ? rule.key : '.' + rule.key.join('.')}`).join(', ')
+    return this.rules.map(rule => `${rule.selector ? `{${rule.selector}}` : ''} ${rule.reverse ? '>' : ''}${typeof rule.key === 'string' ? rule.key : '.' + rule.key.join('.')}`).join(', ')
   }
   set by(newBy) {
     // Will trigger update via rules prop, no need to do it here
@@ -113,10 +110,13 @@ export class DsSorter extends LitElement {
           const { key, selector } = rule
           if (typeof key === 'string') {
             const observeElem = (selector ? elem.querySelector(selector) : elem) as HTMLElement
-            const attributeSet = this.#elementAttrsMap.get(observeElem) ?? new Set()
-            attributeSet.add(key)
-            this.#elementAttrsMap.set(observeElem, attributeSet)
-            this.#mutationObserver.observe(observeElem, { attributeFilter: Array.from(attributeSet) })
+            // Will throw console warning in .sort() if selector doesn't return element
+            if (observeElem) {
+              const attributeSet = this.#elementAttrsMap.get(observeElem) ?? new Set()
+              attributeSet.add(key)
+              this.#elementAttrsMap.set(observeElem, attributeSet)
+              this.#mutationObserver.observe(observeElem, { attributeFilter: Array.from(attributeSet) })
+            }
           }
         })
       })
@@ -138,6 +138,7 @@ export class DsSorter extends LitElement {
     this.dispatchEvent(new CustomEvent('ds-sort', { composed: true, bubbles: true }))
   }
 
+  // TODO: Handle NaN
   #compareElements = (a: HTMLElement, b: HTMLElement, rules = this.rules): number => {
     if (this.random) {
       return Math.random() - 0.5
@@ -176,6 +177,7 @@ export class DsSorter extends LitElement {
     return greater
   }
 
+  // TODO: Handle Symbols
   /** Normalize value for comparison */
   #getValue = (sortingElem: HTMLElement, rule: Rule) => {
     const { key, selector } = rule
@@ -211,7 +213,7 @@ export class DsSorter extends LitElement {
     
     const returnAsIs: typeof prop[]  = ['number', 'string', 'boolean', 'bigint', 'undefined']
     const typeofProp = typeof prop
-    
+
     if (returnAsIs.includes(typeofProp) || prop === null) {
       return prop
     }

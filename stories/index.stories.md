@@ -108,7 +108,7 @@ export const ByHref = () => html`
 ```
 
 ##### By Property
-You can specify a property with the ``by`` attribute, too. To distinguish a property from an attribute, add a '.' before the property name e.g. ``.value``. Values that are ``undefined`` or ``null`` will be considered less than any defined value. Strings, numbers, and booleans will be sorted as expected. Array-like objects will be sorted by length. Functions will be sorted boolean style based on whether a function is present or not. Finally, all other objects will attempt to use their ``.valueOf()`` method, else they return ``undefined``. Note that, unlike attributes, changes to sorted property values won't automatically trigger a re-sort. When sorting by properties that you expect to change, it's recommended to listen for an event related to that value being changed, such as a change event on inputs. The next example demonstrates how you can do this. 
+You can specify a property with the ``by`` attribute, too. To distinguish a property from an attribute, add a '.' before the property name e.g. ``.value``. Values that are ``undefined`` or ``null`` will be considered less than any defined value. Strings, numbers, and booleans will be sorted as expected. Array-like objects will be sorted by length. Functions will be sorted boolean style based on whether a function is present or not. Finally, all other objects will attempt to use their ``.valueOf()`` method, else they return ``undefined``. Note that, unlike attributes, changes to sorted property values won't automatically trigger a re-sort. When sorting by properties that you expect to change, it's recommended to listen for an event related to that value being changed, such as a change event on inputs, and manually call for a sort. An example further below demonstrates how you can do this. 
 ```js preview-story
 export const ByValue = () => html`
   <ds-sorter by=".value">
@@ -183,8 +183,40 @@ export const Reverse = () => html`
 `;
 ``` 
 
+### Advanced Options
+While DsSorter is intended to be straightforward to use in vanilla HTML pages, it also offers some options for those who might use it alongside a JavaScript framework or with other Web Components.
+
+##### By Nested Property
+If the property you want to sort by is nested within another object on the element, you can specify it by adding a '.' and the property name immediately after the object property name e.g. ``.dataset.someData``. You can keep adding nested property names to go as deeply as you need to e.g. ``.someGrandparent.someParent.someChild.someData``
+```js preview-story
+export const ByDatasetValue = () => html`
+  <ds-sorter by=".dataset.row">
+    <div data-row="2">Row 2</div>
+    <div data-row="1">Row 1</div>
+    <div data-row="3">Row 3</div>
+  </ds-sorter>
+`;
+```
+
+##### Manually Specify Rules
+Behind the scenes, the ``by`` attribute gets parsed into an array of ``Rule`` objects. If you find it easier, you may directly modify the ``rules`` attribute or property to update the sorting rules. Please note if setting the property you'll need to assign a new array for DsSorter to recognize a change. A Rule interface is provided if you're using TypeScript.
+```js preview-story
+export const RulesArray = () => html`
+  <ul style="list-style: none; padding-inline-start: 0;">
+    <ds-sorter .rules=${[{ selector: 'input', key: ['checked'] }, { key: ['dataset', 'added'], reverse: true }]} onchange="this.sort()">
+      <li data-added="1"><label><input type="checkbox"/>Corn</label></li>
+      <li data-added="2"><label><input type="checkbox"/>Milk</label></li>
+      <li data-added="3"><label><input type="checkbox" checked/>Cheese</label></li>
+      <li data-added="4"><label><input type="checkbox"/>Bread</label></li>
+      <li data-added="5"><label><input type="checkbox" checked/>Nutmeg</label></li>
+      <li data-added="6"><label><input type="checkbox"/>Apples</label></li>
+    </ds-sorter>
+  </ul>
+`;
+```
+
 ##### Custom Sorting
-Finally, if none of the available configurations quite meet your needs (you may certainly submit a ticket or pull request for new features), you can provide a custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) with the ``comparator`` property. Note that you'll have to get a reference to the DsSorter element and set the property. You can also still use the ``descending`` attribute to sort the elements in reverse order.
+If none of the available configurations quite meet your needs (you may certainly submit a ticket or pull request for new features), you can provide a custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) with the ``comparator`` property. Note that you'll have to get a reference to the DsSorter element and set the property. You can also still use the ``descending`` attribute to sort the elements in reverse order.
 
 Click/tap the example to bind the custom sort function that sorts by the length of text in each paragraph. 
 ```js preview-story
