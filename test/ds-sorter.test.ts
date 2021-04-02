@@ -217,7 +217,7 @@ describe('DsSorter', () => {
         <input .test=${testFunc} />
         <input .test=${null} />
       </ds-sorter>`);
-      expect((el.children[2] as TestElement).test).to.equal(testFunc)
+      expect((el.children[0] as TestElement).test).to.equal(testFunc)
     })
 
     it('can sort by symbol values by using their descriptions', async () => {
@@ -235,14 +235,17 @@ describe('DsSorter', () => {
       }))
     })
 
-    it('considers null and undefined as less than falsy values', async () => {
+    it('considers null, undefined, and NaN as greater than everything (but are not ordered themselves)', async () => {
       interface TestElement extends HTMLElement { test: undefined | null | number }
       const el = await fixture(html`<ds-sorter .rules=${[{key: ['test']}]}>
+        <input .text=${NaN} />
         <input .test=${0} />
         <input .test=${undefined} />
         <input .test=${null} />
+        <input .test=${1} />
       </ds-sorter>`)
-      expect((el.children[2] as TestElement).test).to.equal(0)
+      expect((el.children[0] as TestElement).test).to.equal(0)
+      expect((el.children[1] as TestElement).test).to.equal(1)
     })
 
     it('allows specifying a selector to use instead of top-most elements', async () => {

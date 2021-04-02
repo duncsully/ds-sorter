@@ -104,22 +104,22 @@ export class DsSorter extends LitElement {
   }
 
   updated() {
-      this.sort()
-      this._slottedContent.forEach(elem => {
-        this.rules.forEach(rule => {
-          const { key, selector } = rule
-          if (typeof key === 'string') {
-            const observeElem = (selector ? elem.querySelector(selector) : elem) as HTMLElement
-            // Will throw console warning in .sort() if selector doesn't return element
-            if (observeElem) {
-              const attributeSet = this.#elementAttrsMap.get(observeElem) ?? new Set()
-              attributeSet.add(key)
-              this.#elementAttrsMap.set(observeElem, attributeSet)
-              this.#mutationObserver.observe(observeElem, { attributeFilter: Array.from(attributeSet) })
-            }
+    this.sort()
+    this._slottedContent.forEach(elem => {
+      this.rules.forEach(rule => {
+        const { key, selector } = rule
+        if (typeof key === 'string') {
+          const observeElem = (selector ? elem.querySelector(selector) : elem) as HTMLElement
+          // Will throw console warning in .sort() if selector doesn't return element
+          if (observeElem) {
+            const attributeSet = this.#elementAttrsMap.get(observeElem) ?? new Set()
+            attributeSet.add(key)
+            this.#elementAttrsMap.set(observeElem, attributeSet)
+            this.#mutationObserver.observe(observeElem, { attributeFilter: Array.from(attributeSet) })
           }
-        })
+        }
       })
+    })
   }
 
   render() {
@@ -138,7 +138,6 @@ export class DsSorter extends LitElement {
     this.dispatchEvent(new CustomEvent('ds-sort', { composed: true, bubbles: true }))
   }
 
-  // TODO: Handle NaN
   #compareElements = (a: HTMLElement, b: HTMLElement, rules = this.rules): number => {
     if (this.random) {
       return Math.random() - 0.5
@@ -160,15 +159,15 @@ export class DsSorter extends LitElement {
     const greater = -lesser
 
     if ((firstVal == undefined && secondVal == undefined) || firstVal === secondVal) {
-      // If current values are equal, move down the keys until something isn't equal or we run out of keys
+      // If current values are equal, move down the rules until something isn't equal or we run out of rules
       return restRules.length && this.#compareElements(a, b, restRules)
     }
-    // defined falsy value is greater than undefined
+    // send nullish values to the end
     if (firstVal == undefined && secondVal != undefined) {
-      return lesser
+      return greater
     }
     if (firstVal != undefined && secondVal == undefined) {
-      return greater
+      return lesser
     }
     
     if (firstVal! < secondVal!) {
@@ -209,6 +208,11 @@ export class DsSorter extends LitElement {
       prop = prop[nestedProp as keyof typeof prop]
       prevProp = nestedProp
     }
+
+    // For now, just treat NaN as undefined since it doesn't compare nicely with anything, including itself
+    if (typeof prop === 'number' && isNaN(prop)) {
+      return undefined
+    }
     
     const returnAsIs: typeof prop[] = ['number', 'string', 'boolean', 'bigint', 'undefined']
 
@@ -218,10 +222,13 @@ export class DsSorter extends LitElement {
 
     // TS doesn't think this could ever be a symbol (e.g. someone sets a symbol as the value of a property on an element. Why would anyone do this? I don't know, but they can if they want to.)
     if (typeof prop === 'symbol') {
-      return (prop as symbol).description
+      const { description } = prop as symbol
+      console.warn(`The value being sorted by is a symbol. Using symbol description: "${description}".`)
+      return description
     }
 
     if (typeof prop === 'function') {
+      console.warn('The value being sorted by is a function. Using value "true".')
       // No good way to sort functions, just return that it exists
       return true
     }
