@@ -1,11 +1,9 @@
 import { html, LitElement, property } from 'lit-element'
 // TODO: Implement PRNG with optional seed?
 // TODO: Handle comparing different types? 
-// TODO: Add JSON validation
-// TODO: Update custom-elements.json
-// TODO: Cleanup readme
-// TODO: JSDoc Rule interface
+// TODO: Add Rules setter validation?
 
+/** A rule for configuring how to sort by an attribute or property value */
 export interface Rule {
   /** Attribute name, or array representing a path of properties. (e.g. el.innerText -> ['innerText'] or el.someObj.someChild.someGrandchild -> ['someObj', 'someChild', 'someGrandchild'])  </br>
    * Note: Changes to values of sorted attributes will trigger a re-sort. Changes to sorted properties will not.
@@ -46,7 +44,7 @@ const parseToRules = (value: string | null): Rule[] => {
 }
 
 /**
- * A web component for sorting contained elements
+ * A web component for sorting elements
  * 
  * @element ds-sorter
  * 

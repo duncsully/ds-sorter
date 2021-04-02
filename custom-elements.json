@@ -14,9 +14,14 @@
         },
         {
           "name": "by",
-          "description": " A list of comma-separated rules to sort by in order of precedence. <br/>Specify attributes by name (e.g. \"href\"). If specifying a property, prepend with \".\" (e.g. \".innerText\"). <br/>Optionally, if you'd like to reverse a rule relative to the others, prepend a \">\" (e.g. \"href, >.innerText\"). <br/>Finally, if you'd like to get a value of a descendant of the sorted element, wrap a selector in braces before the value and modifiers (e.g. {div label input} .checked).",
-          "type": "string",
-          "default": ".innerText"
+          "description": "A list of comma-separated rules to sort by in order of precedence. <br/>Specify attributes by name (e.g. \"href\"). If specifying a property, prepend with \".\" (e.g. \".innerText\"). You can use nested properties as well (e.g. \".dataset.row\"). <br/>Optionally, if you'd like to reverse a rule relative to the others, prepend a \">\" (e.g. \"href, >.innerText\"). <br/>Finally, if you'd like to get a value of a descendant of the sorted element, wrap a selector in braces before the value and modifiers (e.g. {div label input} .checked).",
+          "type": "string"
+        },
+        {
+          "name": "rules",
+          "description": "A list of rule objects to sort the elements by. Refer to Rule interface for properties.",
+          "type": "Rule[]",
+          "default": "[{\"key\":[\"innerText\"]}]"
         },
         {
           "name": "descending",
@@ -36,15 +41,21 @@
         {
           "name": "by",
           "attribute": "by",
-          "description": "A list of rules to sort the elements by. Refer to Rule interface for properties.",
+          "description": "A list of comma-separated rules to sort by in order of precedence. <br/>Specify attributes by name (e.g. \"href\"). If specifying a property, prepend with \".\" (e.g. \".innerText\"). You can use nested properties as well (e.g. \".dataset.row\"). <br/>Optionally, if you'd like to reverse a rule relative to the others, prepend a \">\" (e.g. \"href, >.innerText\"). <br/>Finally, if you'd like to get a value of a descendant of the sorted element, wrap a selector in braces before the value and modifiers (e.g. {div label input} .checked).",
+          "type": "string"
+        },
+        {
+          "name": "rules",
+          "attribute": "rules",
+          "description": "A list of rule objects to sort the elements by. Refer to Rule interface for properties.",
           "type": "Rule[]",
-          "default": "[{\"key\":\"innerText\",\"isProperty\":true}]"
+          "default": "[{\"key\":[\"innerText\"]}]"
         },
         {
           "name": "comparator",
           "description": "Custom [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) for sorting",
           "type": "((a: HTMLElement, b: HTMLElement) => number) | undefined",
-          "default": "\"undefined\""
+          "default": "undefined"
         },
         {
           "name": "descending",
@@ -54,10 +65,9 @@
           "default": "false"
         }
       ],
-      "methods": [
+      "events": [
         {
-          "name": "sort",
-          "description": "Manually trigger a sort, such as in response to an event e.g. <ds-sorter onchange=\"this.sort()\">...</ds-sort>"
+          "name": "ds-sort"
         }
       ],
       "slots": [
