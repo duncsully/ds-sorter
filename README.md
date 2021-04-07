@@ -12,7 +12,7 @@ npm i ds-sorter
 ## Usage
 ```html
 <script type="module">
-  import 'ds-sorter/ds-sorter.js';
+  import 'ds-sorter/dist/ds-sorter.js';
 </script>
 
 <ds-sorter>

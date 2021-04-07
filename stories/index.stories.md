@@ -40,7 +40,7 @@ yarn add ds-sorter
 
 ### Importing
 ```js
-import 'ds-sorter/ds-sorter.js';
+import 'ds-sorter/dist/ds-sorter.js';
 ```
 
 ## API
