@@ -43,17 +43,13 @@ yarn add ds-sorter
 import 'ds-sorter/ds-sorter.js';
 ```
 
-```html
-<script src=""></script>
-```
-
 ## API
 <sb-props of="ds-sorter"></sb-props>
 
 ### Methods
-#### sort
+#### sort()
 Manually triggers a sort
-
+<!-- TODO: Come up with a better playground example? 
 ## Playground
 ```js preview-story
 export const Playground = ({ random, by, comparator, descending}) => html`
@@ -64,6 +60,7 @@ export const Playground = ({ random, by, comparator, descending}) => html`
   </ds-sorter>
 `
 ```
+-->
 
 ## Examples
 

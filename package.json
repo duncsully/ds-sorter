@@ -1,11 +1,12 @@
 {
   "name": "ds-sorter",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Web Component DsSorter for sorting elements",
   "author": "duncsully",
   "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/index.js",
+  "homepage": "https://duncsully.github.io/ds-sorter/",
   "scripts": {
     "start": "concurrently --kill-others --names tsc,web-dev-server \"npm run tsc:watch\" \"web-dev-server --app-index demo/index.html --node-resolve --open --watch\"",
     "tsc:watch": "tsc --watch",
@@ -19,7 +20,8 @@
     "test": "tsc && web-test-runner --coverage",
     "test:watch": "web-test-runner --watch",
     "storybook": "concurrently --kill-others --names tsc,storybook \"npm run tsc:watch\" \"start-storybook --node-resolve --watch --open\"",
-    "storybook:build": "build-storybook"
+    "storybook:build": "build-storybook",
+    "storybook:deploy": "storybook-to-ghpages"
   },
   "dependencies": {
     "lit-element": "^2.2.1",
@@ -30,6 +32,7 @@
     "@open-wc/eslint-config": "^4.0.0",
     "@open-wc/testing": "^2.0.0",
     "@snowpack/plugin-typescript": "^1.2.1",
+    "@storybook/storybook-deployer": "^2.8.7",
     "@types/node": "13.11.1",
     "@typescript-eslint/eslint-plugin": "^2.20.0",
     "@typescript-eslint/parser": "^2.20.0",
