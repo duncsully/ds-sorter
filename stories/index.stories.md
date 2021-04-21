@@ -49,18 +49,6 @@ import 'ds-sorter/dist/ds-sorter.js';
 ### Methods
 #### sort()
 Manually triggers a sort
-<!-- TODO: Come up with a better playground example? 
-## Playground
-```js preview-story
-export const Playground = ({ random, by, comparator, descending}) => html`
-  <ds-sorter ?random=${boolean('random', true)} by=${text('by', 'class')} .comparator=${comparator} ?descending=${boolean('descending', false)}>
-    <div class="B"><p class="A"><span class="C">div B, p A, span C</span></p></div>
-    <div class="C"><p class="B"><span class="A">div C, p B, span A</span></p></div>
-    <div class="A"><p class="C"><span class="B">div A, p C, span B</span></p></div>
-  </ds-sorter>
-`
-```
--->
 
 ## Examples
 
